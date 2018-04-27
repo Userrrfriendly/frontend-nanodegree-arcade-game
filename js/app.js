@@ -23,10 +23,6 @@ Enemy.prototype.render = function() {
     ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
 };
 
-// Now write your own player class
-// This class requires an update(), render() and
-// a handleInput() method.
-
 
 // Now instantiate your objects.
 // Place all enemy objects in an array called allEnemies
@@ -37,27 +33,26 @@ Test Code
 */
 
 let allEnemies = [];
-allEnemies.push(new Enemy);
-var Player = function() {
-    this.x = 202;
-    this.y = 100 * 4;
-    // Variables applied to each of our instances go here,
-    // we've provided one for you to get started
+allEnemies.push(new Enemy,);
 
-    // The image/sprite for our enemies, this uses
-    // a helper we've provided to easily load images
+// The player class requires an update(), render() and
+// a handleInput() method.
+
+var Player = function() {
+    this.x = 202 +  101;
+    this.y = 566; //100 * 4 + 83;
     this.sprite = 'images/char-boy.png';
 };
-Player.prototype.update = function(dt) {
-    // You should multiply any movement by the dt parameter
-    // which will ensure the game runs at the same speed for
-    // all computers.
+
+Player.prototype.update = function() {
+
 };
 
-// Draw the enemy on the screen, required method for game
+// Draw the player on the screen
 Player.prototype.render = function() {
     ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
 };
+
 Player.prototype.handleInput = function(key) {
     //0 < x < canvas.width -101
     //0 < y < canvas.height - 141
@@ -76,7 +71,8 @@ Player.prototype.handleInput = function(key) {
             break;
     }
     console.log('x: ' + this.x + ' y: ' + this.y);
-} 
+}; 
+
 let player = new Player();
 /*
 End Test Code
