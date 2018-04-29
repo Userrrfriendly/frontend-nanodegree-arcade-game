@@ -1,10 +1,30 @@
 body {
     text-align: center;
     background: rgb(187, 203, 212);
+    margin:0;
     /* width:505px;
     margin:0; */
+    /* display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column; */
 }
 
+/* .victory-window {
+  width:505px;
+  height:548px;
+  z-index: 1000;
+  position: absolute;
+  background-color:whitesmoke;
+  margin: 0 0 0 0;
+  top: 50;
+} */
+/* canvas {
+    position: absolute;
+    margin:0;
+    top: 0;
+    left:0
+} */
 /* .grid {
     display:flex;
     flex-wrap: wrap;
@@ -18,12 +38,6 @@ body {
     z-index: 100;
 } */
 
-/* canvas {
-    position: absolute;
-    margin:0;
-    top: 0;
-    left:0
-} */
 .animated {
     -webkit-animation-duration: 1s;
     animation-duration: 1s;

@@ -163,7 +163,9 @@ var Engine = (function(global) {
 
         player.render();
         princess.render();
-        princess.scream();//works
+        if (princess.distressed) {
+            princess.scream();//works
+        }
     }
 
     /* This function does nothing but it could have been a good place to

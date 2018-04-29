@@ -1,3 +1,9 @@
+var GameElement = function(x=-101, y=-101, sprite) {
+    //default values position it offscreen
+    this.x = x;
+    this.y = y;
+    this.sprite = sprite;
+}
 // Enemies our player must avoid
 //enemies have 3 difficulties(levels) easy normal hard
 var Enemy = function (level) {
@@ -35,7 +41,7 @@ Enemy.prototype.update = function (dt) {
                 (r2.bottom < r1.top))) {
             console.log('COLLISSION!!!!!...MY MISSIOOOON!!!!!!!');
             document.querySelector('canvas').classList.add('animated', 'wobble');
-            player.dead = true;
+            player.canMove = false;
             (function delayReset() {
                 timeoutID = window.setTimeout(reset, 1000);
             })();
@@ -85,7 +91,7 @@ var Player = function () {
     // this.x = 202 +  101;
     // this.y = 566;  //100 * 4 + 83;
     //7*8 canvas
-    this.dead = false;
+    this.canMove = true;
     this.x = 202;
     this.y = 397; //400; 
     this.areaX = this.x + 101;
@@ -121,7 +127,7 @@ Player.prototype.render = function () {
 Player.prototype.handleInput = function (key) {
     //0 < x < canvas.width -101
     //0 < y < canvas.height - 141
-    if (this.dead) {
+    if (!this.canMove) {
         return;
     };
     switch (key) {
@@ -153,7 +159,7 @@ function reset() {
     document.querySelector('canvas').classList.remove('animated', 'wobble');
     player.x = 202;
     player.y = 397;
-    player.dead = false;
+    player.canMove = true;
 }
 
 // Now instantiate your objects.
@@ -167,15 +173,19 @@ princess.sprite = 'images/char-princess-girl.png';
 princess.x = 202;
 princess.y = -18;
 princess.speed = 1;
+princess.distressed = true;
 princess.text = {
     size : 20,
     increment : true,
-    message : ['HEEEEELLLLPPPPP!!!','HELP ME PLEASE!!!!', 'I CAN\'T SWIM!', 'COME ON BRAVE KNIGHT SAVE ME FROM THE BUGS!'],
+    message : ['HELP!!!','PLEASE HELP!', 'I CAN\'T SWIM!', 'SAVE ME!', 'AAAAAA', '!@#$%^&*'],
 };
 
 princess.update = function(dt) {
     // this.scream();
     // this.text.size += this.speed * dt; 
+    if (player.y <= -18) {
+        this.distressed = false;
+    }
     let playerArea = player.area();
     let princessArea = princess.area();
     function intersectRect(r1, r2) {
@@ -183,7 +193,7 @@ princess.update = function(dt) {
                 (r2.right < r1.left) ||
                 (r2.top > r1.bottom) ||
                 (r2.bottom < r1.top))) {
-            player.dead = true;
+            player.canMove = false;
             princess.x += 101;
         };
     };
@@ -191,23 +201,23 @@ princess.update = function(dt) {
 };
 
 princess.scream = function() {
-    let font =  this.text.size + 'px serif';
+    let font =  this.text;
     // console.log(font);
-    ctx.font = font;
-    ctx.fillText(this.text.message[0] , 50, 100);
-    if (this.text.increment) {
-        this.text.size += 0.1;
-        if (this.text.size >= 40) {this.text.increment = false};
+    ctx.font = font.size + 'px serif';
+    ctx.fillText(font.message[0] , 300, 100);
+    if (font.increment) {
+        font.size += 0.1;
+        if (font.size >= 30) {font.increment = false};
     } else {
-        this.text.size -= 0.1;
-        if (this.text.size <= 20) {
-            this.text.increment = true;
-            let temp = this.text.message.shift();
-            this.text.message.push(temp);
+        font.size -= 0.1;
+        if (font.size <= 20) {
+            font.increment = true;
+            let temp = font.message.shift(); //remove the first element of the message array
+            font.message.push(temp); //the first message is now last item in the array
         }
     }
 };
-
+/*********** END OF - Princess ELEMENT******************/
 let bug1 = new Enemy;
 let bug2 = new Enemy;
 let bug3 = new Enemy;
