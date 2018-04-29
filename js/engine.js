@@ -98,6 +98,7 @@ var Engine = (function(global) {
         });
         player.update();
         princess.update(dt);
+        heart.update(dt);
         // princess.scream(); //doesnt work
         // console.log(dt);
     }
@@ -165,6 +166,8 @@ var Engine = (function(global) {
         princess.render();
         if (princess.distressed) {
             princess.scream();//works
+        } else {
+            heart.render();
         }
     }
 
@@ -187,7 +190,8 @@ var Engine = (function(global) {
         'images/grass-block.png',
         'images/enemy-bug.png',
         'images/char-boy.png',
-        'images/char-princess-girl.png'
+        'images/char-princess-girl.png',
+        'images/Heart.png'
     ]);
     Resources.onReady(init);
 

@@ -1,9 +1,34 @@
+//Generic Game Element (building block for game elements)
 var GameElement = function(x=-101, y=-101, sprite) {
     //default values position it offscreen
     this.x = x;
     this.y = y;
     this.sprite = sprite;
 }
+
+GameElement.prototype.area = function (left = 10, right = 91, top = 70, bottom = 151) {
+    //area is defined in the following way:
+    //since the original image is 101 * 171px 
+    //and is mostly white/invisible space around the character
+    //10px where subtracted from left and right,
+    //70px from top and 20 from bottom
+    //player/princess: height=81, width:81
+    return {
+        left: this.x + left,
+        right: this.x + right,
+        top: this.y + top,
+        bottom: this.y + bottom
+    };
+};
+
+GameElement.prototype.render = function () {
+    if (this.animation) {
+        this.animation.aniFunc();
+    } else {
+        ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
+    }
+};
+
 // Enemies our player must avoid
 //enemies have 3 difficulties(levels) easy normal hard
 var Enemy = function (level) {
@@ -167,12 +192,15 @@ function reset() {
 // Place the player object in a variable called player
 
 let player = new Player();
-/***********Princess******************/
-let princess = new Player();
-princess.sprite = 'images/char-princess-girl.png';
-princess.x = 202;
-princess.y = -18;
-princess.speed = 1;
+
+/************ ************
+ ******Princess***********
+ ************ ************/
+let princess = new GameElement(202,-18,'images/char-princess-girl.png');
+// princess.sprite = 'images/char-princess-girl.png';
+// princess.x = 202;
+// princess.y = -18;
+// princess.speed = 1;
 princess.distressed = true;
 princess.text = {
     size : 20,
@@ -186,8 +214,8 @@ princess.update = function(dt) {
     if (player.y <= -18) {
         this.distressed = false;
     }
-    let playerArea = player.area();
-    let princessArea = princess.area();
+    // const playerArea = player.area();
+    // const princessArea = princess.area();
     function intersectRect(r1, r2) {
         if (!((r2.left > r1.right) ||
                 (r2.right < r1.left) ||
@@ -197,12 +225,12 @@ princess.update = function(dt) {
             princess.x += 101;
         };
     };
-    intersectRect(playerArea, princessArea);
+    intersectRect(player.area(), princess.area());
 };
 
 princess.scream = function() {
+    //call it from render
     let font =  this.text;
-    // console.log(font);
     ctx.font = font.size + 'px serif';
     ctx.fillText(font.message[0] , 300, 100);
     if (font.increment) {
@@ -218,6 +246,54 @@ princess.scream = function() {
     }
 };
 /*********** END OF - Princess ELEMENT******************/
+/************ ************
+ ******heart***********
+ ************ ************/
+const heart = new GameElement(101,-18,'images/Heart.png');
+heart.update = function(dt) {
+    function intersectRect(r1, r2) {
+        if (!((r2.left > r1.right) ||
+                (r2.right < r1.left) ||
+                (r2.top > r1.bottom) ||
+                (r2.bottom < r1.top))) {
+            heart.x -= 101;
+        } else if (player.x !== 101 || player.y !== -18){
+            heart.x = 101;
+        };
+    };
+    intersectRect(player.area(), heart.area());
+};
+
+// GameElement.prototype.render = function () {
+//     if (this.animation) {
+
+//     } else {
+//         ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
+//     }
+// };
+heart.animation = {
+    decrement: true,
+    dWidth: 101,
+    dHeight: 171,
+    aniFunc: function () {
+        console.log(this);
+        const animation = heart.animation; //what should i do if i wanted to call it with this.heart.animation;
+        ctx.drawImage(Resources.get(heart.sprite), heart.x, heart.y, animation.dWidth, animation.dHeight);
+        if (animation.decrement) {
+            animation.dWidth -= 1;
+            animation.dHeight -= 1;
+            if (animation.dWidth <= 50) {animation.decrement = false;}
+        } else {
+            animation.dWidth += 1;
+            animation.dHeight += 1;
+            if (animation.dWidth >= 101) {animation.decrement = true;}
+        }
+    }
+}
+
+
+
+
 let bug1 = new Enemy;
 let bug2 = new Enemy;
 let bug3 = new Enemy;
