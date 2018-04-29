@@ -97,7 +97,9 @@ var Engine = (function(global) {
             enemy.update(dt);
         });
         player.update();
-        princess.update();
+        princess.update(dt);
+        // princess.scream(); //doesnt work
+        // console.log(dt);
     }
 
     /* This function initially draws the "game level", it will then call
@@ -161,7 +163,7 @@ var Engine = (function(global) {
 
         player.render();
         princess.render();
-        princess.scream();
+        princess.scream();//works
     }
 
     /* This function does nothing but it could have been a good place to

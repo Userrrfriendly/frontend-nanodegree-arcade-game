@@ -40,10 +40,10 @@ Enemy.prototype.update = function (dt) {
                 timeoutID = window.setTimeout(reset, 1000);
             })();
         };
-        return !(r2.left > r1.right ||
-            r2.right < r1.left ||
-            r2.top > r1.bottom ||
-            r2.bottom < r1.top);
+        // return !(r2.left > r1.right ||
+        //     r2.right < r1.left ||
+        //     r2.top > r1.bottom ||
+        //     r2.bottom < r1.top);
     };
     intersectRect(playerArea, enemyArea);
 
@@ -73,6 +73,7 @@ Enemy.prototype.render = function () {
 
 Enemy.prototype.getRndInteger = function (min, max) {
     //returns a random integer between (and including) the given min max values
+    //used to randomly position and set random speed to each bug 
     return Math.floor(Math.random() * (max - min + 1)) + min;
 };
 
@@ -165,9 +166,16 @@ let princess = new Player();
 princess.sprite = 'images/char-princess-girl.png';
 princess.x = 202;
 princess.y = -18;
-princess.textCount = 1;
-princess.update = function(){
-    this.scream();
+princess.speed = 1;
+princess.text = {
+    size : 20,
+    increment : true,
+    message : ['HEEEEELLLLPPPPP!!!','HELP ME PLEASE!!!!', 'I CAN\'T SWIM!', 'COME ON BRAVE KNIGHT SAVE ME FROM THE BUGS!'],
+};
+
+princess.update = function(dt) {
+    // this.scream();
+    // this.text.size += this.speed * dt; 
     let playerArea = player.area();
     let princessArea = princess.area();
     function intersectRect(r1, r2) {
@@ -175,21 +183,31 @@ princess.update = function(){
                 (r2.right < r1.left) ||
                 (r2.top > r1.bottom) ||
                 (r2.bottom < r1.top))) {
-            // player.dead = true;
-            this.x += 101;
+            player.dead = true;
+            princess.x += 101;
         };
     };
     intersectRect(playerArea, princessArea);
 };
+
 princess.scream = function() {
-    let font = this.textCount + 'px serif';
+    let font =  this.text.size + 'px serif';
+    // console.log(font);
     ctx.font = font;
-    ctx.fillText('Hello world', 50, 100);
-    this.textCount +=1;
-    if (this.textCount > 50) {
-        this.textCount -=10;
+    ctx.fillText(this.text.message[0] , 50, 100);
+    if (this.text.increment) {
+        this.text.size += 0.1;
+        if (this.text.size >= 40) {this.text.increment = false};
+    } else {
+        this.text.size -= 0.1;
+        if (this.text.size <= 20) {
+            this.text.increment = true;
+            let temp = this.text.message.shift();
+            this.text.message.push(temp);
+        }
     }
 };
+
 let bug1 = new Enemy;
 let bug2 = new Enemy;
 let bug3 = new Enemy;
