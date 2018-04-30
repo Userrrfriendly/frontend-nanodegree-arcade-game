@@ -23,6 +23,7 @@ var Engine = (function(global) {
         canvas = doc.createElement('canvas'),
         ctx = canvas.getContext('2d'),
         lastTime;
+    var gameStatus = 'idle';
 
         // canvas.width = 505 + 101 * 2;
         // canvas.height = 606 + 101 * 2;
@@ -47,6 +48,13 @@ var Engine = (function(global) {
         /* Call our update/render functions, pass along the time delta to
          * our update function since it may be used for smooth animation.
          */
+        switch (gameStatus) {
+            case 'idle': 
+                player.canMove = false;
+                break;
+            case 'running':
+            
+        }
         update(dt);
         render();
 
@@ -68,6 +76,7 @@ var Engine = (function(global) {
     function init() {
         reset();
         lastTime = Date.now();
+        //if game started then run ?
         main();
     }
 
@@ -165,7 +174,7 @@ var Engine = (function(global) {
         player.render();
         princess.render();
         if (princess.distressed) {
-            princess.scream();//works
+            princess.scream();
         } else {
             heart.render();
         }

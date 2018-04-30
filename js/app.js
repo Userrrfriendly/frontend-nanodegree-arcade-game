@@ -1,4 +1,6 @@
-//Generic Game Element (building block for game elements)
+/*********************************************************
+ *Generic Game Element (building block for game elements)*
+ *********************************************************/
 var GameElement = function(x=-101, y=-101, sprite) {
     //default values position it offscreen
     this.x = x;
@@ -6,13 +8,13 @@ var GameElement = function(x=-101, y=-101, sprite) {
     this.sprite = sprite;
 }
 
-GameElement.prototype.area = function (left = 10, right = 91, top = 70, bottom = 151) {
-    //area is defined in the following way:
+GameElement.prototype.area = function (left = 20, right = 81, top = 70, bottom = 151) {
+    //area is used to check object collision
     //since the original image is 101 * 171px 
     //and is mostly white/invisible space around the character
     //10px where subtracted from left and right,
     //70px from top and 20 from bottom
-    //player/princess: height=81, width:81
+    //player/princess/GameElement(instance): pure dimensions height=81 width:81
     return {
         left: this.x + left,
         right: this.x + right,
@@ -22,6 +24,10 @@ GameElement.prototype.area = function (left = 10, right = 91, top = 70, bottom =
 };
 
 GameElement.prototype.render = function () {
+    //if the element has a property with the name animation
+    //the animation.aniFunc will handle the render method
+    //if the object doesn't have an animation property
+    //default rendering method will be used.
     if (this.animation) {
         this.animation.aniFunc();
     } else {
@@ -29,35 +35,21 @@ GameElement.prototype.render = function () {
     }
 };
 
-// Enemies our player must avoid
-//enemies have 3 difficulties(levels) easy normal hard
-var Enemy = function (level) {
+/*********************************************************
+ *************Enemies (bugs) our player must avoid********
+ *********************************************************/
+var Enemy = function () {
     this.x = -100;
-    this.y = 68;
-    // this.areaX = this.x + 101;
-    // this.areaY = this.y + 83;
+    this.y = 65;
     this.speed = this.getRndInteger(200, 500);
-    // Variables applied to each of our instances go here,
-    // we've provided one for you to get started
-
-    // The image/sprite for our enemies, this uses
-    // a helper we've provided to easily load images
     this.sprite = 'images/enemy-bug.png';
 };
-//504x = out of bounds
-// Update the enemy's position, required method for game
-// Parameter: dt, a time delta between ticks
-// You should multiply any movement by the dt parameter
-// which will ensure the game runs at the same speed for
-// all computers.
+
 Enemy.prototype.update = function (dt) {
-    //once the enemy is outside the canvas its reset() triggers
     this.x += this.speed * dt;
     if (this.x > 604) {
         this.reset();
     }
-    let enemyArea = this.area();
-    let playerArea = player.area();
 
     function intersectRect(r1, r2) {
         if (!((r2.left > r1.right) ||
@@ -67,17 +59,10 @@ Enemy.prototype.update = function (dt) {
             console.log('COLLISSION!!!!!...MY MISSIOOOON!!!!!!!');
             document.querySelector('canvas').classList.add('animated', 'wobble');
             player.canMove = false;
-            (function delayReset() {
-                timeoutID = window.setTimeout(reset, 1000);
-            })();
+            setTimeout(reset, 1000);
         };
-        // return !(r2.left > r1.right ||
-        //     r2.right < r1.left ||
-        //     r2.top > r1.bottom ||
-        //     r2.bottom < r1.top);
     };
-    intersectRect(playerArea, enemyArea);
-
+    intersectRect(player.area(), this.area());
 };
 
 Enemy.prototype.area = function () {
@@ -89,14 +74,14 @@ Enemy.prototype.area = function () {
     };
 };
 
-
 Enemy.prototype.reset = function () {
     //repositions the enemy on a random row on the left side of the canvas
     //gives the enemy a random speed
-    this.x = 0;
-    this.y = 68 + this.getRndInteger(0, 2) * 83;
+    this.x = -100;
+    this.y = 65 + this.getRndInteger(0, 2) * 83;
     this.speed = this.getRndInteger(100, 350);
 }
+
 // Draw the enemy on the screen, required method for game
 Enemy.prototype.render = function () {
     ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
@@ -108,29 +93,19 @@ Enemy.prototype.getRndInteger = function (min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 };
 
-
-// The player class requires an update(), render() and
-// a handleInput() method.
-
+/*********************************************************
+ ***********************  Player *************************
+ *********************************************************/
 var Player = function () {
-    // this.x = 202 +  101;
-    // this.y = 566;  //100 * 4 + 83;
-    //7*8 canvas
     this.canMove = true;
     this.x = 202;
     this.y = 397; //400; 
-    this.areaX = this.x + 101;
-    this.areaY = this.y + 83;
+    // this.areaX = this.x + 101;
+    // this.areaY = this.y + 83;
     this.sprite = 'images/char-boy.png';
 };
 
 Player.prototype.area = function () {
-    //area is defined in the following way:
-    //since the original image is 101 * 171px 
-    //and is mostly white/invisible space around the character
-    //10px where subtracted from left and right,
-    //70px from top and 20 from bottom
-    //player: height=81, width:81
     return {
         left: this.x + 10,
         right: this.x + 91,
@@ -138,7 +113,6 @@ Player.prototype.area = function () {
         bottom: this.y + 151
     };
 };
-
 
 Player.prototype.update = function () {
 
@@ -150,72 +124,84 @@ Player.prototype.render = function () {
 };
 
 Player.prototype.handleInput = function (key) {
-    //0 < x < canvas.width -101
-    //0 < y < canvas.height - 141
-    if (!this.canMove) {
-        return;
+    if (this.canMove) {
+        switch (key) {
+            case 'up':
+                if (this.y > -18) {
+                    this.y -= 83;
+                    if (this.y <= -18) {
+                        victory();
+                    }
+                } 
+                break;
+            case 'down':
+                if (this.y < 397) {
+                    this.y += 83;
+                }
+                break;
+            case 'left':
+                if (this.x > 0) {
+                    this.x -= 101
+                };
+                break;
+            case 'right':
+                if (this.x < 404) {
+                    this.x += 101
+                };
+                break;
+        }
+        console.log('x: ' + this.x + ' y: ' + this.y);
     };
-    switch (key) {
-        case 'up':
-            if (this.y > -15) {
-                this.y -= 83;
-            }
-            break;
-        case 'down':
-            if (this.y < 397) {
-                this.y += 83;
-            }
-            break;
-        case 'left':
-            if (this.x > 0) {
-                this.x -= 101
-            };
-            break;
-        case 'right':
-            if (this.x < 404) {
-                this.x += 101
-            };
-            break;
-    }
-    console.log('x: ' + this.x + ' y: ' + this.y);
 };
 
 function reset() {
+    //resets the game by:
+    //1)reposition the player in the grass
+    //2)Player is able to move again
     document.querySelector('canvas').classList.remove('animated', 'wobble');
     player.x = 202;
     player.y = 397;
     player.canMove = true;
 }
 
-// Now instantiate your objects.
+/*********************************************************
+ **********  Instances of Player,Enemy,GameElement *******
+ *********************************************************/
+
 // Place all enemy objects in an array called allEnemies
 // Place the player object in a variable called player
-
 let player = new Player();
 
-/************ ************
- ******Princess***********
- ************ ************/
+let bug1 = new Enemy;
+let bug2 = new Enemy;
+let bug3 = new Enemy;
+let testBug = new Enemy;
+testBug.speed = 0;
+testBug.x = 202;
+
+
+bug1.y = 68;
+bug2.y = 68 + 83;
+bug3.y = 68 + 83 * 2;
+let allEnemies = [];
+allEnemies.push(new Enemy, new Enemy, bug1, bug2, bug3);
+
+//************************** PRINCESS **********************************
+//Since the princes is drowning in the water and surrounded by ravenous bugs
+//she is clearly .DISTRESSED! While distressed she constantly .SCREAMS()
+//when our hero reaches the water she stops beeing distressed and the heart appears on the screen 
 let princess = new GameElement(202,-18,'images/char-princess-girl.png');
-// princess.sprite = 'images/char-princess-girl.png';
-// princess.x = 202;
-// princess.y = -18;
-// princess.speed = 1;
 princess.distressed = true;
-princess.text = {
+princess.screamText = {
     size : 20,
     increment : true,
-    message : ['HELP!!!','PLEASE HELP!', 'I CAN\'T SWIM!', 'SAVE ME!', 'AAAAAA', '!@#$%^&*'],
+    message : ['HELP!!!','PLEASE HELP!', 'I CAN\'T SWIM!', 'SAVE ME!','I\'M DROWNING!', 'AAAaaa', '!@#$%^&*'],
 };
 
 princess.update = function(dt) {
-    // this.scream();
-    // this.text.size += this.speed * dt; 
     if (player.y <= -18) {
         this.distressed = false;
     }
-    // const playerArea = player.area();
-    // const princessArea = princess.area();
     function intersectRect(r1, r2) {
         if (!((r2.left > r1.right) ||
                 (r2.right < r1.left) ||
@@ -229,8 +215,7 @@ princess.update = function(dt) {
 };
 
 princess.scream = function() {
-    //call it from render
-    let font =  this.text;
+    let font =  this.screamText;
     ctx.font = font.size + 'px serif';
     ctx.fillText(font.message[0] , 300, 100);
     if (font.increment) {
@@ -245,10 +230,8 @@ princess.scream = function() {
         }
     }
 };
-/*********** END OF - Princess ELEMENT******************/
-/************ ************
- ******heart***********
- ************ ************/
+
+//****************** HEART ******************************
 const heart = new GameElement(101,-18,'images/Heart.png');
 heart.update = function(dt) {
     function intersectRect(r1, r2) {
@@ -256,61 +239,35 @@ heart.update = function(dt) {
                 (r2.right < r1.left) ||
                 (r2.top > r1.bottom) ||
                 (r2.bottom < r1.top))) {
-            heart.x -= 101;
-        } else if (player.x !== 101 || player.y !== -18){
-            heart.x = 101;
+            heart.x += 202;
         };
     };
     intersectRect(player.area(), heart.area());
 };
 
-// GameElement.prototype.render = function () {
-//     if (this.animation) {
-
-//     } else {
-//         ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
-//     }
-// };
 heart.animation = {
     decrement: true,
     dWidth: 101,
     dHeight: 171,
     aniFunc: function () {
-        console.log(this);
-        const animation = heart.animation; //what should i do if i wanted to call it with this.heart.animation;
+        // console.log(this);
+        var animation = heart.animation; //what should i do if i wanted to call it with this.animation?
         ctx.drawImage(Resources.get(heart.sprite), heart.x, heart.y, animation.dWidth, animation.dHeight);
         if (animation.decrement) {
             animation.dWidth -= 1;
             animation.dHeight -= 1;
+            heart.x += 0.5;
+            heart.y += 1;
             if (animation.dWidth <= 50) {animation.decrement = false;}
         } else {
             animation.dWidth += 1;
             animation.dHeight += 1;
+            heart.x -= 0.5;
+            heart.y -= 1;
             if (animation.dWidth >= 101) {animation.decrement = true;}
         }
     }
 }
-
-
-
-
-let bug1 = new Enemy;
-let bug2 = new Enemy;
-let bug3 = new Enemy;
-
-let testBug = new Enemy;
-testBug.speed = 0;
-testBug.x = 202;
-
-function debugBug() {
-    allEnemies = [];
-    allEnemies.push(testBug);
-}
-bug1.y = 68;
-bug2.y = 68 + 83;
-bug3.y = 68 + 83 * 2;
-let allEnemies = [];
-allEnemies.push(new Enemy, new Enemy, bug1, bug2, bug3);
 
 // This listens for key presses and sends the keys to your
 // Player.handleInput() method. You don't need to modify this.
@@ -325,18 +282,47 @@ document.addEventListener('keyup', function (e) {
     player.handleInput(allowedKeys[e.keyCode]);
 });
 
-/*TODO: Implement game.reset() in engine.js
-make 3 difficulties * easy, normal, hard
+function victory() {
+    // document.querySelector('.victory-screen').classList.remove('hidden');
+    // document.querySelector('.victory-screen').classList.add('bounceInDown', 'translateY');
+    showPanel();
+    player.canMove = false;
+}
+
+//hides the Game panel (bounceOutUp)
+function hidePanel() {
+    document.querySelector('.victory-screen').classList.add('bounceOutUp');
+    setTimeout( function () {
+        document.querySelector('canvas').classList.add('no-margin');
+        document.querySelector('.victory-screen').className = 'victory-screen animated translateY'
+    }, 500)
+}
+
+//Shows the GamePanel (bounceInDown)
+function showPanel() {
+    document.querySelector('canvas').classList.remove('no-margin');
+    document.querySelector('.victory-screen').classList.remove('translateY');
+    document.querySelector('.victory-screen').classList.add('bounceInDown');
+
+}
+
+function debugBug() {
+    //NOT A GAME FUNCTION! Used only in debbuging mode!
+    //clears the enemies and leaves only one bug(testBug) on the screen
+    allEnemies = [];
+    allEnemies.push(testBug);
+}
+
+/*TODO: 
+    *DEFAULT ENEMY.XY SHOULD BE SET BY THE CANVAS SIZE
+    *Prevent the player from moving after death for 900ms
+    *easy normal hard
+    *FIX THE FONT ON SCREAM()
+    *RESET GAME (RESET HEART XY, PRINCESS XY, ANIMATIONS victory-screen)
+    *WHEN YOU CREATE THE CANVAS ALSO CREATE THE VICTORY SCREEN SO THEY HAVE THE SAME SIZE
+        *IF CANVAS IS CHANGED THE XY OF PLAYER/HEART/PRINCES ARE FROM THE OLD INSTANCE...NEED TO UPDATE :()
 height * width 
 101 * 83
 stopThe bug that killed the player. but how will you reset him?
-create a reward for beating the game 
-Prevent the player from moving after death for 900ms
-
-[x: 0, 100] -> [x: 101, 201]  
-[y: 0, 82] - > [y: 0, 82] 
- |
- V
-[x: 0, 100] ->  [x: 101, 201]  
-[y: 83, 165] - > [y: 83, 165] 
 */
+
