@@ -1,20 +1,20 @@
 /*********************************************************
  *Generic Game Element (building block for game elements)*
  *********************************************************/
-var GameElement = function(x=-101, y=-101, sprite) {
+var GameElement = function (x = -101, y = -101, sprite) {
     //default values position it offscreen
     this.x = x;
     this.y = y;
     this.sprite = sprite;
 }
 
-GameElement.prototype.area = function (left = 20, right = 81, top = 70, bottom = 151) {
+GameElement.prototype.area = function (left = 20, right = 81, top = 70, bottom = 150) {
     //area is used to check object collision
     //since the original image is 101 * 171px 
     //and is mostly white/invisible space around the character
-    //10px where subtracted from left and right,
+    //20px where subtracted from left and right,
     //70px from top and 20 from bottom
-    //player/princess/GameElement(instance): pure dimensions height=81 width:81
+    //player/princess/GameElement(instance): pure dimensions height=61 width:80
     return {
         left: this.x + left,
         right: this.x + right,
@@ -48,18 +48,26 @@ var Enemy = function () {
 Enemy.prototype.update = function (dt) {
     this.x += this.speed * dt;
     if (this.x > 604) {
-        this.reset();
+        (gameStatus.status === 'running') ? this.reset() : this.speed = 0;
     }
-
+    let thisEnemy = this;
     function intersectRect(r1, r2) {
-        if (!((r2.left > r1.right) ||
-                (r2.right < r1.left) ||
-                (r2.top > r1.bottom) ||
-                (r2.bottom < r1.top))) {
-            console.log('COLLISSION!!!!!...MY MISSIOOOON!!!!!!!');
-            document.querySelector('canvas').classList.add('animated', 'wobble');
-            player.canMove = false;
-            setTimeout(reset, 1000);
+        //without this if collision can trigger multiple times thus triggering the setTimeout multiple times.
+        if (player.canMove) { 
+            if (!((r2.left > r1.right) ||
+                    (r2.right < r1.left) ||
+                    (r2.top > r1.bottom) ||
+                    (r2.bottom < r1.top))) {
+                console.log('COLLISSION!!!!!...MY MISSIOOOON!!!!!!!' + this);
+                thisEnemy.speed = 0;
+                document.querySelector('canvas').classList.add('animated', 'wobble');
+                player.canMove = false;
+                setTimeout(function() {
+                    thisEnemy.reset();
+                    player.reset();
+                    document.querySelector('canvas').classList.remove('wobble');
+                }, 1000);
+            };
         };
     };
     intersectRect(player.area(), this.area());
@@ -69,12 +77,12 @@ Enemy.prototype.area = function () {
     return {
         left: this.x,
         right: this.x + 100,
-        top: this.y + 70,
+        top: this.y + 80,
         bottom: this.y + 148
     };
 };
 
-Enemy.prototype.reset = function () {
+Enemy.prototype.reset = function (speed) {
     //repositions the enemy on a random row on the left side of the canvas
     //gives the enemy a random speed
     this.x = -100;
@@ -107,10 +115,10 @@ var Player = function () {
 
 Player.prototype.area = function () {
     return {
-        left: this.x + 10,
-        right: this.x + 91,
+        left: this.x + 20,
+        right: this.x + 81,
         top: this.y + 70,
-        bottom: this.y + 151
+        bottom: this.y + 150
     };
 };
 
@@ -132,7 +140,7 @@ Player.prototype.handleInput = function (key) {
                     if (this.y <= -18) {
                         victory();
                     }
-                } 
+                }
                 break;
             case 'down':
                 if (this.y < 397) {
@@ -154,11 +162,9 @@ Player.prototype.handleInput = function (key) {
     };
 };
 
-function reset() {
-    //resets the game by:
-    //1)reposition the player in the grass
-    //2)Player is able to move again
-    document.querySelector('canvas').classList.remove('animated', 'wobble');
+// document.querySelector('canvas').classList.remove('wobble');
+//na ginei method ston player kai na metanomastei se player.reset.. 
+Player.prototype.reset = function () {
     player.x = 202;
     player.y = 397;
     player.canMove = true;
@@ -190,18 +196,19 @@ allEnemies.push(new Enemy, new Enemy, bug1, bug2, bug3);
 //Since the princes is drowning in the water and surrounded by ravenous bugs
 //she is clearly .DISTRESSED! While distressed she constantly .SCREAMS()
 //when our hero reaches the water she stops beeing distressed and the heart appears on the screen 
-let princess = new GameElement(202,-18,'images/char-princess-girl.png');
+let princess = new GameElement(202, -18, 'images/char-princess-girl.png');
 princess.distressed = true;
 princess.screamText = {
-    size : 20,
-    increment : true,
-    message : ['HELP!!!','PLEASE HELP!', 'I CAN\'T SWIM!', 'SAVE ME!','I\'M DROWNING!', 'AAAaaa', '!@#$%^&*'],
+    size: 20,
+    increment: true,
+    message: ['HELP!!!', 'PLEASE HELP!', 'I CAN\'T SWIM!', 'SAVE ME!', 'I\'M DROWNING!', 'AAAaaa', '!@#$%^&*'],
 };
 
-princess.update = function(dt) {
+princess.update = function (dt) {
     if (player.y <= -18) {
         this.distressed = false;
     }
+
     function intersectRect(r1, r2) {
         if (!((r2.left > r1.right) ||
                 (r2.right < r1.left) ||
@@ -214,13 +221,15 @@ princess.update = function(dt) {
     intersectRect(player.area(), princess.area());
 };
 
-princess.scream = function() {
-    let font =  this.screamText;
+princess.scream = function () {
+    let font = this.screamText;
     ctx.font = font.size + 'px serif';
-    ctx.fillText(font.message[0] , 300, 100);
+    ctx.fillText(font.message[0], 300, 100);
     if (font.increment) {
         font.size += 0.1;
-        if (font.size >= 30) {font.increment = false};
+        if (font.size >= 30) {
+            font.increment = false
+        };
     } else {
         font.size -= 0.1;
         if (font.size <= 20) {
@@ -231,9 +240,14 @@ princess.scream = function() {
     }
 };
 
+princess.reset = function() {
+    this.x =202;
+    this.y =-18;
+    this.distressed = true;
+}
 //****************** HEART ******************************
-const heart = new GameElement(101,-18,'images/Heart.png');
-heart.update = function(dt) {
+const heart = new GameElement(101, -18, 'images/Heart.png');
+heart.update = function (dt) {
     function intersectRect(r1, r2) {
         if (!((r2.left > r1.right) ||
                 (r2.right < r1.left) ||
@@ -258,16 +272,28 @@ heart.animation = {
             animation.dHeight -= 1;
             heart.x += 0.5;
             heart.y += 1;
-            if (animation.dWidth <= 50) {animation.decrement = false;}
+            if (animation.dWidth <= 50) {
+                animation.decrement = false;
+            }
         } else {
             animation.dWidth += 1;
             animation.dHeight += 1;
             heart.x -= 0.5;
             heart.y -= 1;
-            if (animation.dWidth >= 101) {animation.decrement = true;}
+            if (animation.dWidth >= 101) {
+                animation.decrement = true;
+            }
         }
     }
 }
+
+heart.reset = function () {
+    this.x = 101;
+    this.y = -18;
+    this.animation.decrement = true;
+    this.animation.dWidth = 101;
+    this.animation.dHeight = 171;
+};
 
 // This listens for key presses and sends the keys to your
 // Player.handleInput() method. You don't need to modify this.
@@ -283,46 +309,51 @@ document.addEventListener('keyup', function (e) {
 });
 
 function victory() {
-    // document.querySelector('.victory-screen').classList.remove('hidden');
-    // document.querySelector('.victory-screen').classList.add('bounceInDown', 'translateY');
-    showPanel();
     player.canMove = false;
+    showPanel();
+    gameStatus.status = 'game-over';
 }
 
 //hides the Game panel (bounceOutUp)
 function hidePanel() {
     document.querySelector('.victory-screen').classList.add('bounceOutUp');
-    setTimeout( function () {
+    setTimeout(function () {
         document.querySelector('canvas').classList.add('no-margin');
-        document.querySelector('.victory-screen').className = 'victory-screen animated translateY'
+        document.querySelector('.victory-screen').className = 'victory-screen animated translateY';
     }, 500)
 }
 
 //Shows the GamePanel (bounceInDown)
 function showPanel() {
     document.querySelector('canvas').classList.remove('no-margin');
+    document.querySelector('.victory-screen').firstElementChild.textContent = `Congrats! The Hero Saves The Day!
+    Play Again?`;
     document.querySelector('.victory-screen').classList.remove('translateY');
     document.querySelector('.victory-screen').classList.add('bounceInDown');
-
 }
+
+//Normal button - Start the game in normal mode
+document.querySelector('.normal').addEventListener('click', function () {
+    gameStatus.status = 'running';
+    hidePanel();
+    player.reset(); //player reset
+    princess.reset();
+    heart.reset();
+})
 
 function debugBug() {
     //NOT A GAME FUNCTION! Used only in debbuging mode!
-    //clears the enemies and leaves only one bug(testBug) on the screen
+    //clears the enemies and leaves only one bug( testBug) on the screen
     allEnemies = [];
     allEnemies.push(testBug);
 }
 
 /*TODO: 
+    *the canvas obj could/should be part of the gameStatus 
     *DEFAULT ENEMY.XY SHOULD BE SET BY THE CANVAS SIZE
-    *Prevent the player from moving after death for 900ms
-    *easy normal hard
+    *HARD MODE
     *FIX THE FONT ON SCREAM()
-    *RESET GAME (RESET HEART XY, PRINCESS XY, ANIMATIONS victory-screen)
     *WHEN YOU CREATE THE CANVAS ALSO CREATE THE VICTORY SCREEN SO THEY HAVE THE SAME SIZE
         *IF CANVAS IS CHANGED THE XY OF PLAYER/HEART/PRINCES ARE FROM THE OLD INSTANCE...NEED TO UPDATE :()
-height * width 
 101 * 83
-stopThe bug that killed the player. but how will you reset him?
 */
-

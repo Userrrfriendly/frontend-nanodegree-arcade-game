@@ -12,13 +12,13 @@ body {
     flex-direction: column; */
 }
 
-.hidden {
+/* .hidden {
   display: none;
   transform: translateY(2000px);
-}
+} */
 
 .translateY {
-  transform: translateY(2000px);
+  transform: translateY(-2000px);
 }
 
 .victory-screen {

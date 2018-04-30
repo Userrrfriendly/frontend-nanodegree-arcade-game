@@ -23,7 +23,7 @@ var Engine = (function(global) {
         canvas = doc.createElement('canvas'),
         ctx = canvas.getContext('2d'),
         lastTime;
-    var gameStatus = 'idle';
+    var gameStatus = {status:'idle'};
 
         // canvas.width = 505 + 101 * 2;
         // canvas.height = 606 + 101 * 2;
@@ -48,13 +48,6 @@ var Engine = (function(global) {
         /* Call our update/render functions, pass along the time delta to
          * our update function since it may be used for smooth animation.
          */
-        switch (gameStatus) {
-            case 'idle': 
-                player.canMove = false;
-                break;
-            case 'running':
-            
-        }
         update(dt);
         render();
 
@@ -76,7 +69,6 @@ var Engine = (function(global) {
     function init() {
         reset();
         lastTime = Date.now();
-        //if game started then run ?
         main();
     }
 
@@ -90,7 +82,17 @@ var Engine = (function(global) {
      * on the entities themselves within your app.js file).
      */
     function update(dt) {
-        updateEntities(dt);
+        switch (gameStatus.status) {
+            case 'idle': 
+                player.canMove = false;
+                break;
+            case 'running':
+                updateEntities(dt);
+                break;
+            case 'game-over':
+                updateEntities(dt);
+                break;
+        }
         // checkCollisions();
     }
 
@@ -184,10 +186,10 @@ var Engine = (function(global) {
      * handle game reset states - maybe a new game menu or a game over screen
      * those sorts of things. It's only called once by the init() method.
      */
-    // function reset() {
-    //     console.log('hi from enjince');
-    //     // noop
-    // }
+    function reset() {
+        // console.log('hi from enjince');
+        // noop
+    }
 
     /* Go ahead and load all of the images we know we're going to need to
      * draw our game level. Then set init as the callback method, so that when
@@ -214,4 +216,6 @@ var Engine = (function(global) {
         width: canvas.width,
         height: canvas.height
     };
+    //export a global obj with the game status
+    global.gameStatus = gameStatus;
 })(this);
