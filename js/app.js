@@ -9,12 +9,13 @@ var GameElement = function (x = -101, y = -101, sprite) {
 }
 
 GameElement.prototype.area = function (left = 20, right = 81, top = 70, bottom = 150) {
-    //area is used to check object collision
-    //since the original image is 101 * 171px 
-    //and is mostly white/invisible space around the character
+    //area is used to check object collision.
+    //Each cell on the canvas is 101 x 83 pixels but the original image is 101 * 171px 
+    //the extra space is the white(invisible when rendered) space around the character
     //20px where subtracted from left and right,
     //70px from top and 20 from bottom
-    //player/princess/GameElement(instance): pure dimensions height=61 width:80
+    //player/princess/gameElement: dimensions after 'trimming' the whitespace are height=61 width:80
+
     return {
         left: this.x + left,
         right: this.x + right,
@@ -24,10 +25,9 @@ GameElement.prototype.area = function (left = 20, right = 81, top = 70, bottom =
 };
 
 GameElement.prototype.render = function () {
-    //if the element has a property with the name animation
-    //the animation.aniFunc will handle the render method
-    //if the object doesn't have an animation property
-    //default rendering method will be used.
+    //if the element has a property with the name animation then
+    //the gameElement.animation.aniFunc() will handle the render method
+    //if not then default rendering method will be used.
     if (this.animation) {
         this.animation.aniFunc();
     } else {
@@ -38,27 +38,40 @@ GameElement.prototype.render = function () {
 /*********************************************************
  *************Enemies (bugs) our player must avoid********
  *********************************************************/
-var Enemy = function () {
-    this.x = -100;
-    this.y = 65;
-    this.speed = this.getRndInteger(200, 500);
+
+//Unless x,y,speed are specified, by default instanses of Enemy
+//will be positioned outside of the left side of the canvas
+//in a random row, and will get a random speed.
+var Enemy = function (x = -100, y = 65, speed = this.getRndInteger(200, 500)) {
+    this.x = x;
+    this.y = y;
+    this.speed = speed; //this.getRndInteger(200, 500);
     this.sprite = 'images/enemy-bug.png';
 };
 
+/*
+Enemy.update takes care of the following:
+-1- sets enemy speed based on timestamp(dt) difference provided by the engine.js
+-2- checks if enemy is outside the canvas and either places it on the left side of the canvas (during gameplay)
+    or stops the movement and leaves the enemies outside of the right side of canvas (during victory).
+-3- checks for collision with the player.
+*/
 Enemy.prototype.update = function (dt) {
     this.x += this.speed * dt;
     if (this.x > 604) {
         (gameStatus.status === 'running') ? this.reset() : this.speed = 0;
     }
     let thisEnemy = this;
+    //intersectRect checks if two rectangles(enemy sprite vs player sprite) overlap 
     function intersectRect(r1, r2) {
-        //without this if collision can trigger multiple times thus triggering the setTimeout multiple times.
+        //if player cannotMove then don't check for collision 
+        //this prevents triggering collision multiple times that would also trigger the setTimeout multiple times.
         if (player.canMove) { 
             if (!((r2.left > r1.right) ||
                     (r2.right < r1.left) ||
                     (r2.top > r1.bottom) ||
                     (r2.bottom < r1.top))) {
-                console.log('COLLISSION!!!!!...MY MISSIOOOON!!!!!!!' + this);
+                // console.log('COLLISSION!!!!!...MY MISSIOOOON!!!!!!!' + this);
                 thisEnemy.speed = 0;
                 document.querySelector('canvas').classList.add('animated', 'wobble');
                 player.canMove = false;
@@ -82,22 +95,22 @@ Enemy.prototype.area = function () {
     };
 };
 
+//repositions the enemy on a random row on the left side of the canvas
+//and gives the enemy a random speed
 Enemy.prototype.reset = function (speed) {
-    //repositions the enemy on a random row on the left side of the canvas
-    //gives the enemy a random speed
     this.x = -100;
     this.y = 65 + this.getRndInteger(0, 2) * 83;
     this.speed = this.getRndInteger(100, 350);
 }
 
-// Draw the enemy on the screen, required method for game
+// Draw the enemy on the screen (single static frame)
 Enemy.prototype.render = function () {
     ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
 };
 
+//returns a random integer between (and including) the given min max values
+//used to randomly position and set random speed to each instance 
 Enemy.prototype.getRndInteger = function (min, max) {
-    //returns a random integer between (and including) the given min max values
-    //used to randomly position and set random speed to each bug 
     return Math.floor(Math.random() * (max - min + 1)) + min;
 };
 
@@ -131,6 +144,8 @@ Player.prototype.render = function () {
     ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
 };
 
+//Handles the keyboard input(arrows) after checking if player is able(or rather allowed) to move,
+//also checks if player has reached the water (victory condition).
 Player.prototype.handleInput = function (key) {
     if (this.canMove) {
         switch (key) {
@@ -162,8 +177,8 @@ Player.prototype.handleInput = function (key) {
     };
 };
 
-// document.querySelector('canvas').classList.remove('wobble');
-//na ginei method ston player kai na metanomastei se player.reset.. 
+//Repositions the player on the starting position
+//and allows him able to move again.
 Player.prototype.reset = function () {
     player.x = 202;
     player.y = 397;
@@ -174,36 +189,36 @@ Player.prototype.reset = function () {
  **********  Instances of Player,Enemy,GameElement *******
  *********************************************************/
 
-// Place all enemy objects in an array called allEnemies
 // Place the player object in a variable called player
 let player = new Player();
 
+// Place all enemy objects in an array called allEnemies
 let bug1 = new Enemy;
 let bug2 = new Enemy;
 let bug3 = new Enemy;
-let testBug = new Enemy;
-testBug.speed = 0;
-testBug.x = 202;
-
-
-bug1.y = 68;
-bug2.y = 68 + 83;
-bug3.y = 68 + 83 * 2;
+bug1.y = 65;
+bug2.y = 65 + 83;
+bug3.y = 65 + 83 * 2;
 let allEnemies = [];
-allEnemies.push(new Enemy, new Enemy, bug1, bug2, bug3);
+allEnemies.push(new Enemy(), new Enemy(), bug1, bug2, bug3);
 
-//************************** PRINCESS **********************************
-//Since the princes is drowning in the water and surrounded by ravenous bugs
-//she is clearly .DISTRESSED! While distressed she constantly .SCREAMS()
-//when our hero reaches the water she stops beeing distressed and the heart appears on the screen 
+/************************** PRINCESS **********************************
+    Since the princes is drowning in the water and surrounded by ravenous bugs
+    she is clearly .DISTRESSED! While distressed she constantly .SCREAMS() for help
+    when our hero reaches the water she stops beeing distressed,
+    stops screaming and gives her heart to the player. (beating heart appears next to her). 
+*/
 let princess = new GameElement(202, -18, 'images/char-princess-girl.png');
 princess.distressed = true;
 princess.screamText = {
     size: 20,
     increment: true,
-    message: ['HELP!!!', 'PLEASE HELP!', 'I CAN\'T SWIM!', 'SAVE ME!', 'I\'M DROWNING!', 'AAAaaa', '!@#$%^&*'],
+    message: ['HELP!!!', 'PLEASE HELP!', 'I CAN\'T SWIM!', 'SAVE ME!', 'I\'M DROWNING!', 'AaAaaaA!', '!@#$%^&*'],
 };
 
+//checks if player has reached the water 
+//checks if the player overlaps with her 
+//(she will move to the next square to avoid overlap with player)
 princess.update = function (dt) {
     if (player.y <= -18) {
         this.distressed = false;
@@ -221,9 +236,12 @@ princess.update = function (dt) {
     intersectRect(player.area(), princess.area());
 };
 
+//Prints animated text (princess's screams for help) on the canvas 
+//Since this method is used to render content on the
+//canvas it is invoked in the render() method in engine.js
 princess.scream = function () {
     let font = this.screamText;
-    ctx.font = font.size + 'px serif';
+    ctx.font = font.size + 'px fantasy, Cursive';
     ctx.fillText(font.message[0], 300, 100);
     if (font.increment) {
         font.size += 0.1;
@@ -245,8 +263,14 @@ princess.reset = function() {
     this.y =-18;
     this.distressed = true;
 }
+
 //****************** HEART ******************************
+//heart is drawn on the canvas when princess stops beeing distressed (on victory condition)
+//heart is rendered similary to princess's screams(text)
+//At each frame the image is repositioned by dx=1px, dy=1px and at the same time scaled down by 
+//1px along the x & y axis thus giving the impression that the heart is beating.  
 const heart = new GameElement(101, -18, 'images/Heart.png');
+//Moves the heart if the player intersects with it.
 heart.update = function (dt) {
     function intersectRect(r1, r2) {
         if (!((r2.left > r1.right) ||
@@ -259,12 +283,15 @@ heart.update = function (dt) {
     intersectRect(player.area(), heart.area());
 };
 
+//Keeps track of all the values nessesary for the animation
+//the existance of this property 'tells' the render method(of this object) to  
+//override the default render and instead use the aniFunk() method to render the object
 heart.animation = {
     decrement: true,
     dWidth: 101,
     dHeight: 171,
     aniFunc: function () {
-        // console.log(this);
+        // console.log(this); ...window
         var animation = heart.animation; //what should i do if i wanted to call it with this.animation?
         ctx.drawImage(Resources.get(heart.sprite), heart.x, heart.y, animation.dWidth, animation.dHeight);
         if (animation.decrement) {
@@ -296,25 +323,32 @@ heart.reset = function () {
 };
 
 // This listens for key presses and sends the keys to your
-// Player.handleInput() method. You don't need to modify this.
+// Player.handleInput() method.
 document.addEventListener('keyup', function (e) {
     var allowedKeys = {
         37: 'left',
         38: 'up',
         39: 'right',
-        40: 'down'
+        40: 'down',
+        //real gamers don't use arrows! A,W,D,S keys: 
+        65: 'left',
+        87: 'up',
+        68: 'right',
+        83: 'down'
     };
 
     player.handleInput(allowedKeys[e.keyCode]);
 });
 
+//Is triggered when player reaches the water
+//brings down the GamePanel and changes the state to 'game-over'
 function victory() {
     player.canMove = false;
     showPanel();
     gameStatus.status = 'game-over';
 }
 
-//hides the Game panel (bounceOutUp)
+//hides the GamePanel (bounceOutUp)
 function hidePanel() {
     document.querySelector('.victory-screen').classList.add('bounceOutUp');
     setTimeout(function () {
@@ -332,7 +366,8 @@ function showPanel() {
     document.querySelector('.victory-screen').classList.add('bounceInDown');
 }
 
-//Normal button - Start the game in normal mode
+//Normal-difficulty Event Listener - Starts the game in normal mode.
+//sets the state to 'runnng' (game in progress)
 document.querySelector('.normal').addEventListener('click', function () {
     gameStatus.status = 'running';
     hidePanel();
@@ -343,13 +378,21 @@ document.querySelector('.normal').addEventListener('click', function () {
 
 function debugBug() {
     //NOT A GAME FUNCTION! Used only in debbuging mode!
-    //clears the enemies and leaves only one bug( testBug) on the screen
+    //clears the enemies and leaves only one bug (testBug) on the screen
+    let testBug = new Enemy();
+    testBug.speed = 0;
+    testBug.x = 202;
     allEnemies = [];
     allEnemies.push(testBug);
+    this.testBug = testBug;
 }
 
 /*TODO: 
     *the canvas obj could/should be part of the gameStatus 
+    *Wright in comments what you did in the enine.js
+    *add WASD keys :P
+    *make Enemy consume args and make default values for y positioning.
+*****BUT FIRST TAKE CARE OF THE CANVAS SIZE IN HARD MODE!!!!!!!!!!!!!!!!
     *DEFAULT ENEMY.XY SHOULD BE SET BY THE CANVAS SIZE
     *HARD MODE
     *FIX THE FONT ON SCREAM()
