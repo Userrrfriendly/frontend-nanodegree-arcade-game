@@ -6,7 +6,7 @@ var GameElement = function (x = -101, y = -101, sprite) {
     this.x = x;
     this.y = y;
     this.sprite = sprite;
-}
+};
 
 GameElement.prototype.area = function (left = 20, right = 81, top = 70, bottom = 150) {
     //area is used to check object collision.
@@ -41,7 +41,7 @@ GameElement.prototype.render = function () {
 
 //Unless x,y,speed are specified, by default instanses of Enemy
 //will be positioned outside of the left side of the canvas
-//in a random row, and will get a random speed.
+//on a random row and given a random speed.
 var Enemy = function (x = -100, y = 65, speed = this.getRndInteger(200, 500)) {
     this.x = x;
     this.y = y;
@@ -65,13 +65,17 @@ Enemy.prototype.update = function (dt) {
     //intersectRect checks if two rectangles(enemy sprite vs player sprite) overlap 
     function intersectRect(r1, r2) {
         //if player cannotMove then don't check for collision 
-        //this prevents triggering collision multiple times that would also trigger the setTimeout multiple times.
+        //among others this prevents triggering collision multiple times that would also trigger the setTimeout mul tiple times.
         if (player.canMove) { 
             if (!((r2.left > r1.right) ||
                     (r2.right < r1.left) ||
                     (r2.top > r1.bottom) ||
                     (r2.bottom < r1.top))) {
-                // console.log('COLLISSION!!!!!...MY MISSIOOOON!!!!!!!' + this);
+                //COLLISSION!
+                //  -the collided bug stops
+                //  -the canvas wobbles
+                //  -player is immobillized
+                //  -after 1000ms the player the bug and the canvas are reseted.
                 thisEnemy.speed = 0;
                 document.querySelector('canvas').classList.add('animated', 'wobble');
                 player.canMove = false;
@@ -97,10 +101,10 @@ Enemy.prototype.area = function () {
 
 //repositions the enemy on a random row on the left side of the canvas
 //and gives the enemy a random speed
-Enemy.prototype.reset = function (speed) {
-    this.x = -100;
-    this.y = 65 + this.getRndInteger(0, 2) * 83;
-    this.speed = this.getRndInteger(100, 350);
+Enemy.prototype.reset = function (x = -100, y = 65 + this.getRndInteger(0,2) * 83, speed = this.getRndInteger(100, 350) ) {
+    this.x = x;//-100;
+    this.y = y;//65 + this.getRndInteger(0, 2) * 83;
+    this.speed = speed;//this.getRndInteger(100, 350);
 }
 
 // Draw the enemy on the screen (single static frame)
@@ -121,8 +125,6 @@ var Player = function () {
     this.canMove = true;
     this.x = 202;
     this.y = 397; //400; 
-    // this.areaX = this.x + 101;
-    // this.areaY = this.y + 83;
     this.sprite = 'images/char-boy.png';
 };
 
@@ -144,7 +146,7 @@ Player.prototype.render = function () {
     ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
 };
 
-//Handles the keyboard input(arrows) after checking if player is able(or rather allowed) to move,
+//Handles the keyboard input(arrows) Checks if the player can move, and moves the player accordingly
 //also checks if player has reached the water (victory condition).
 Player.prototype.handleInput = function (key) {
     if (this.canMove) {
@@ -173,15 +175,15 @@ Player.prototype.handleInput = function (key) {
                 };
                 break;
         }
-        console.log('x: ' + this.x + ' y: ' + this.y);
+        // console.log('x: ' + this.x + ' y: ' + this.y);
     };
 };
 
 //Repositions the player on the starting position
 //and allows him able to move again.
-Player.prototype.reset = function () {
-    player.x = 202;
-    player.y = 397;
+Player.prototype.reset = function (x = 202, y = 397) {
+    player.x = x;
+    player.y = y;
     player.canMove = true;
 }
 
@@ -218,7 +220,7 @@ princess.screamText = {
 
 //checks if player has reached the water 
 //checks if the player overlaps with her 
-//(she will move to the next square to avoid overlap with player)
+//(she will move to the next square to avoid overlaping with player)
 princess.update = function (dt) {
     if (player.y <= -18) {
         this.distressed = false;
@@ -229,14 +231,14 @@ princess.update = function (dt) {
                 (r2.right < r1.left) ||
                 (r2.top > r1.bottom) ||
                 (r2.bottom < r1.top))) {
-            player.canMove = false;
+            // player.canMove = false;
             princess.x += 101;
         };
     };
     intersectRect(player.area(), princess.area());
 };
 
-//Prints animated text (princess's screams for help) on the canvas 
+//Prints animated text (screams for help) on the canvas 
 //Since this method is used to render content on the
 //canvas it is invoked in the render() method in engine.js
 princess.scream = function () {
@@ -266,9 +268,6 @@ princess.reset = function() {
 
 //****************** HEART ******************************
 //heart is drawn on the canvas when princess stops beeing distressed (on victory condition)
-//heart is rendered similary to princess's screams(text)
-//At each frame the image is repositioned by dx=1px, dy=1px and at the same time scaled down by 
-//1px along the x & y axis thus giving the impression that the heart is beating.  
 const heart = new GameElement(101, -18, 'images/Heart.png');
 //Moves the heart if the player intersects with it.
 heart.update = function (dt) {
@@ -282,10 +281,13 @@ heart.update = function (dt) {
     };
     intersectRect(player.area(), heart.area());
 };
-
-//Keeps track of all the values nessesary for the animation
+//heart.animation keeps track of all the values nessesary for the animation
 //the existance of this property 'tells' the render method(of this object) to  
 //override the default render and instead use the aniFunk() method to render the object
+//  heart is rendered/animated similary to princess's screams(text)
+//  At each frame the image is repositioned by dx=0.5px, dy=1px and at the same time scaled (initially down then up)
+//  by 1px along the x & y axis. When width reached a certain (min or max) threshold the process is reversed.
+//  thus giving the impression that the heart is beating.
 heart.animation = {
     decrement: true,
     dWidth: 101,
@@ -340,8 +342,8 @@ document.addEventListener('keyup', function (e) {
     player.handleInput(allowedKeys[e.keyCode]);
 });
 
-//Is triggered when player reaches the water
-//brings down the GamePanel and changes the state to 'game-over'
+//Victory() is triggered when player reaches the water
+//It brings down the GamePanel and changes the state to 'game-over'
 function victory() {
     player.canMove = false;
     showPanel();
@@ -354,7 +356,7 @@ function hidePanel() {
     setTimeout(function () {
         document.querySelector('canvas').classList.add('no-margin');
         document.querySelector('.victory-screen').className = 'victory-screen animated translateY';
-    }, 500)
+    }, 600)
 }
 
 //Shows the GamePanel (bounceInDown)
@@ -371,13 +373,13 @@ function showPanel() {
 document.querySelector('.normal').addEventListener('click', function () {
     gameStatus.status = 'running';
     hidePanel();
-    player.reset(); //player reset
+    player.reset();
     princess.reset();
     heart.reset();
 })
 
 function debugBug() {
-    //NOT A GAME FUNCTION! Used only in debbuging mode!
+    //NOT A GAME FUNCTION! Used only in debbuging mode in devtools!
     //clears the enemies and leaves only one bug (testBug) on the screen
     let testBug = new Enemy();
     testBug.speed = 0;
@@ -388,15 +390,14 @@ function debugBug() {
 }
 
 /*TODO: 
+    *Add hard mode difficulty
+    *Modify enjine.js so it can generate a bigger canvas for hard mode
     *the canvas obj could/should be part of the gameStatus 
     *Wright in comments what you did in the enine.js
-    *add WASD keys :P
     *make Enemy consume args and make default values for y positioning.
-*****BUT FIRST TAKE CARE OF THE CANVAS SIZE IN HARD MODE!!!!!!!!!!!!!!!!
-    *DEFAULT ENEMY.XY SHOULD BE SET BY THE CANVAS SIZE
-    *HARD MODE
-    *FIX THE FONT ON SCREAM()
+    *DEFAULT ENEMY.XY limited  SHOULD BE SET BY THE CANVAS SIZE
+    *Victory condition should be arbitary to canvas size in order to handle both normal and hard mode
     *WHEN YOU CREATE THE CANVAS ALSO CREATE THE VICTORY SCREEN SO THEY HAVE THE SAME SIZE
-        *IF CANVAS IS CHANGED THE XY OF PLAYER/HEART/PRINCES ARE FROM THE OLD INSTANCE...NEED TO UPDATE :()
+        *IF CANVAS IS CHANGED (game starts in normal mode) THE XY OF PLAYER/HEART/PRINCES ARE FROM THE OLD INSTANCE...NEED TO UPDATE :()
 101 * 83
 */

@@ -82,6 +82,7 @@ var Engine = (function(global) {
      * on the entities themselves within your app.js file).
      */
     function update(dt) {
+        //switch added to handle how game behaves based on its status
         switch (gameStatus.status) {
             case 'idle': 
                 player.canMove = false;
@@ -110,7 +111,6 @@ var Engine = (function(global) {
         player.update();
         princess.update(dt);
         heart.update(dt);
-        // princess.scream(); //doesnt work
         // console.log(dt);
     }
 
