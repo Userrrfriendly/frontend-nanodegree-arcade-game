@@ -45,7 +45,7 @@ GameElement.prototype.render = function () {
 var Enemy = function (x = -100, y = 65, speed = this.getRndInteger(200, 500)) {
     this.x = x;
     this.y = y;
-    this.speed = speed; //this.getRndInteger(200, 500);
+    this.speed = speed;
     this.sprite = 'images/enemy-bug.png';
 };
 
@@ -59,14 +59,14 @@ Enemy.update takes care of the following:
 Enemy.prototype.update = function (dt) {
     this.x += this.speed * dt;
     if (this.x > 604) {
-        (gameStatus.status === 'running') ? this.reset() : this.speed = 0;
+        (gameStatus.status === 'running') ? this.reset(): this.speed = 0;
     }
     let thisEnemy = this;
     //intersectRect checks if two rectangles(enemy sprite vs player sprite) overlap 
     function intersectRect(r1, r2) {
         //if player cannotMove then don't check for collision 
-        //among others this prevents triggering collision multiple times that would also trigger the setTimeout mul tiple times.
-        if (player.canMove) { 
+        //among others this prevents triggering collision multiple times that would also trigger the setTimeout multiple times.
+        if (player.canMove) {
             if (!((r2.left > r1.right) ||
                     (r2.right < r1.left) ||
                     (r2.top > r1.bottom) ||
@@ -79,7 +79,7 @@ Enemy.prototype.update = function (dt) {
                 thisEnemy.speed = 0;
                 document.querySelector('canvas').classList.add('animated', 'wobble');
                 player.canMove = false;
-                setTimeout(function() {
+                setTimeout(function () {
                     thisEnemy.reset();
                     player.reset();
                     document.querySelector('canvas').classList.remove('wobble');
@@ -101,10 +101,10 @@ Enemy.prototype.area = function () {
 
 //repositions the enemy on a random row on the left side of the canvas
 //and gives the enemy a random speed
-Enemy.prototype.reset = function (x = -100, y = 65 + this.getRndInteger(0,2) * 83, speed = this.getRndInteger(100, 350) ) {
-    this.x = x;//-100;
-    this.y = y;//65 + this.getRndInteger(0, 2) * 83;
-    this.speed = speed;//this.getRndInteger(100, 350);
+Enemy.prototype.reset = function (x = -100, y = 65 + this.getRndInteger(0, 2) * 83, speed = this.getRndInteger(100, 350)) {
+    this.x = x;
+    this.y = y;
+    this.speed = speed;
 }
 
 // Draw the enemy on the screen (single static frame)
@@ -124,7 +124,7 @@ Enemy.prototype.getRndInteger = function (min, max) {
 var Player = function () {
     this.canMove = true;
     this.x = 202;
-    this.y = 397; //400; 
+    this.y = 397;
     this.sprite = 'images/char-boy.png';
 };
 
@@ -138,7 +138,7 @@ Player.prototype.area = function () {
 };
 
 Player.prototype.update = function () {
-
+    //will add functionality later when hard difficulty is implemented
 };
 
 // Draw the player on the screen
@@ -195,14 +195,8 @@ Player.prototype.reset = function (x = 202, y = 397) {
 let player = new Player();
 
 // Place all enemy objects in an array called allEnemies
-let bug1 = new Enemy;
-let bug2 = new Enemy;
-let bug3 = new Enemy;
-bug1.y = 65;
-bug2.y = 65 + 83;
-bug3.y = 65 + 83 * 2;
 let allEnemies = [];
-allEnemies.push(new Enemy(), new Enemy(), bug1, bug2, bug3);
+allEnemies.push(new Enemy(), new Enemy(), new Enemy(-101, 65), new Enemy(-101, 148), new Enemy(-101, 231));
 
 /************************** PRINCESS **********************************
     Since the princes is drowning in the water and surrounded by ravenous bugs
@@ -231,7 +225,6 @@ princess.update = function (dt) {
                 (r2.right < r1.left) ||
                 (r2.top > r1.bottom) ||
                 (r2.bottom < r1.top))) {
-            // player.canMove = false;
             princess.x += 101;
         };
     };
@@ -260,9 +253,9 @@ princess.scream = function () {
     }
 };
 
-princess.reset = function() {
-    this.x =202;
-    this.y =-18;
+princess.reset = function () {
+    this.x = 202;
+    this.y = -18;
     this.distressed = true;
 }
 
@@ -293,7 +286,6 @@ heart.animation = {
     dWidth: 101,
     dHeight: 171,
     aniFunc: function () {
-        // console.log(this); ...window
         var animation = heart.animation; //what should i do if i wanted to call it with this.animation?
         ctx.drawImage(Resources.get(heart.sprite), heart.x, heart.y, animation.dWidth, animation.dHeight);
         if (animation.decrement) {
@@ -390,14 +382,13 @@ function debugBug() {
 }
 
 /*TODO: 
-    *Add hard mode difficulty
-    *Modify enjine.js so it can generate a bigger canvas for hard mode
-    *the canvas obj could/should be part of the gameStatus 
-    *Wright in comments what you did in the enine.js
-    *make Enemy consume args and make default values for y positioning.
-    *DEFAULT ENEMY.XY limited  SHOULD BE SET BY THE CANVAS SIZE
-    *Victory condition should be arbitary to canvas size in order to handle both normal and hard mode
-    *WHEN YOU CREATE THE CANVAS ALSO CREATE THE VICTORY SCREEN SO THEY HAVE THE SAME SIZE
-        *IF CANVAS IS CHANGED (game starts in normal mode) THE XY OF PLAYER/HEART/PRINCES ARE FROM THE OLD INSTANCE...NEED TO UPDATE :()
-101 * 83
+    *re-write the project with ES6 syntax
+    *the canvas obj could/should? be part of the gameStatus (less global variables) 
+    *Add HARD difficulty:
+        -Modify enjine.js so it can generate a bigger canvas for hard mode
+        -Add detailed comments for changes in enine.js
+        -Default enemy.y/victory condition/starting position for the player/game panel width etc
+            SHOULD be set dynamically (depending on the canvas size)
+        -Add stones to the grid (obstacles where the player cannot pass through)
+        -Add collectable items 
 */
