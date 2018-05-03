@@ -182,9 +182,11 @@ Player.prototype.handleInput = function (key) {
 //Repositions the player on the starting position
 //and allows him able to move again.
 Player.prototype.reset = function (x = 202, y = 397) {
-    player.x = x;
-    player.y = y;
-    player.canMove = true;
+    //Initially reset was a global function and reseted the player and the game
+    //when I moved it to Player.prototype I forgot to change the function... Can't believe I missed this!
+    this.x = x;
+    this.y = y;
+    this.canMove = true;
 }
 
 /*********************************************************
