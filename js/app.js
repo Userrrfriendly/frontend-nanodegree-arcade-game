@@ -1,39 +1,47 @@
 /*********************************************************
  *Generic Game Element (building block for game elements)*
  *********************************************************/
-var GameElement = function (x = -101, y = -101, sprite) {
-    //default values position it offscreen
-    this.x = x;
-    this.y = y;
-    this.sprite = sprite;
-};
-
-GameElement.prototype.area = function (left = 20, right = 81, top = 70, bottom = 150) {
-    //area is used to check object collision.
-    //Each cell on the canvas is 101 x 83 pixels but the original image is 101 * 171px 
-    //the extra space is the white(invisible when rendered) space around the character
-    //20px where subtracted from left and right,
-    //70px from top and 20 from bottom
-    //player/princess/gameElement: dimensions after 'trimming' the whitespace are height=61 width:80
-
-    return {
-        left: this.x + left,
-        right: this.x + right,
-        top: this.y + top,
-        bottom: this.y + bottom
-    };
-};
-
-GameElement.prototype.render = function () {
-    //if the element has a property with the name animation then
-    //the gameElement.animation.aniFunc() will handle the render method
-    //if not then default rendering method will be used.
-    if (this.animation) {
-        this.animation.aniFunc();
-    } else {
-        ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
+class GameElement {
+        constructor(x = -101, y = -101, sprite) {
+        //default values position it offscreen
+        this.x = x;
+        this.y = y;
+        this.sprite = sprite;
     }
-};
+    
+    area(left = 20, right = 81, top = 70, bottom = 150) {
+        //area is used to check object collision.
+        //Each cell on the canvas is 101 x 83 pixels but the original image is 101 * 171px 
+        //the extra space is the white(invisible when rendered) space around the character
+        //20px where subtracted from left and right,
+        //70px from top and 20 from bottom
+        //player/princess/gameElement: dimensions after 'trimming' the whitespace are height=61 width:80
+        return {
+            left: this.x + left,
+            right: this.x + right,
+            top: this.y + top,
+            bottom: this.y + bottom
+        };
+    }
+
+    render() {
+        //if the element has a property with the name animation then
+        //the gameElement.animation.aniFunc() will handle the render method
+        //if not then default rendering method will be used.
+        if (this.animation) {
+            this.animation.aniFunc();
+        } else {
+            ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
+        }
+    }
+
+    getRndInteger(min, max) {
+        //returns a random integer between (and including) the given min max values
+        //used to randomly position and set random speed to each instance 
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+}
 
 /*********************************************************
  *************Enemies (bugs) our player must avoid********
@@ -42,7 +50,81 @@ GameElement.prototype.render = function () {
 //Unless x,y,speed are specified, by default instanses of Enemy
 //will be positioned outside of the left side of the canvas
 //on a random row and given a random speed.
-var Enemy = function (x = -100, y = 65, speed = this.getRndInteger(200, 500)) {
+class MyEnemy2 extends GameElement {
+    constructor(x = -101, y = 65, sprite = 'images/enemy-bug.png', age = 4 ) { //speed = this.getRndInteger(200, 500),
+        super(x,y,sprite);
+        this.speed = this.getRndInteger(200, 500)
+        // this.x = x;
+        // this.y = y;
+        //this.speed = speed;
+        // this.sprite = 'images/enemy-bug.png';
+    }
+
+    // this.speed()
+    update() {
+        this.x += this.speed * dt;
+        if (this.x > 604) {
+            (gameStatus.status === 'running') ? this.reset(): this.speed = 0;
+        }
+        let thisEnemy = this;
+        //intersectRect checks if two rectangles(enemy sprite vs player sprite) overlap 
+        function intersectRect(r1, r2) {
+            //if player cannotMove then don't check for collision 
+            //among others this prevents triggering collision multiple times that would also trigger the setTimeout multiple times.
+            if (player.canMove) {
+                if (!((r2.left > r1.right) ||
+                        (r2.right < r1.left) ||
+                        (r2.top > r1.bottom) ||
+                        (r2.bottom < r1.top))) {
+                    //COLLISSION!
+                    //  -the collided bug stops
+                    //  -the canvas wobbles
+                    //  -player is immobillized
+                    //  -after 1000ms the player the bug and the canvas are reseted.
+                    thisEnemy.speed = 0;
+                    document.querySelector('canvas').classList.add('animated', 'wobble');
+                    player.canMove = false;
+                    setTimeout(function () {
+                        thisEnemy.reset();
+                        player.reset();
+                        document.querySelector('canvas').classList.remove('wobble');
+                    }, 1000);
+                };
+            };
+        };
+        intersectRect(player.area(), this.area());
+    }
+
+    area() {
+        super.area(left = 0, right = 100, top = 80, bottom = 148);
+        // return {
+        //     left: this.x + left,
+        //     right: this.x + right,
+        //     top: this.y + top,
+        //     bottom: this.y + bottom
+        // };
+    }
+
+    reset (x = -100, y = 65 + this.getRndInteger(0, 2) * 83, speed = this.getRndInteger(100, 350)) {
+        this.x = x;
+        this.y = y;
+        this.speed = speed;
+    }
+
+    render() {
+        super.render();
+    }
+    
+    getRndInteger() {
+        super.getRndInteger();
+    }
+
+
+}
+/*********************************************************
+ *********************** ES5 ENEMY ***********************
+ *********************************************************/
+var Enemy = function (x = -101, y = 65, speed = this.getRndInteger(200, 500)) {
     this.x = x;
     this.y = y;
     this.speed = speed;
