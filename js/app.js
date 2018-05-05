@@ -21,7 +21,7 @@ class GameElement {
         //the extra space is the white(invisible when rendered) space around the character
         //20px where subtracted from left and right,
         //70px from top and 20 from bottom
-        //player/princess/gameElement: dimensions after 'trimming' the whitespace are height=61 width:80
+        //Default gameElement dimensions after 'trimming' the whitespace are height=61 width:80
         return {
             left: this.x + this.spriteExtents.left,
             right: this.x + this.spriteExtents.right,
@@ -57,7 +57,7 @@ class GameElement {
 //will be positioned outside of the left side of the canvas
 //on a random row and given a random speed.
 class Enemy extends GameElement {
-    constructor(x = -101, y = 65, sprite = 'images/enemy-bug.png', speed) { //speed = this.getRndInteger(200, 500),
+    constructor(x = -101, y = 65, sprite = 'images/enemy-bug.png', speed) {
         super(x, y, sprite);
         speed ? this.speed = speed : this.speed = this.getRndInteger(200, 500);
         this.spriteExtents = {
@@ -284,7 +284,6 @@ class Heart extends GameElement {
                 }
             }
         }
-
     }
 
     //Moves the heart if the player intersects with it.
