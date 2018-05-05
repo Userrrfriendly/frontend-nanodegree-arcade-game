@@ -23,7 +23,12 @@ var Engine = (function(global) {
         canvas = doc.createElement('canvas'),
         ctx = canvas.getContext('2d'),
         lastTime;
-    var gameStatus = {status:'idle'};
+    var gameStatus = {
+        status:'idle',
+        width: canvas.width,
+        height: canvas.height        
+    };
+
 
         // canvas.width = 505 + 101 * 2;
         // canvas.height = 606 + 101 * 2;
