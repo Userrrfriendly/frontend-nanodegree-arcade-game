@@ -1,0 +1,26 @@
+{
+  "name": "frontend-nanodegree-arcade-game",
+  "version": "1.0.0",
+  "description": "Udacity FEND project",
+  "main": "index.js",
+  "dependencies": {
+    "eslint": "^4.19.1"
+  },
+  "devDependencies": {
+    "eslint-config-airbnb-base": "^12.1.0",
+    "eslint-plugin-import": "^2.11.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Userrrfriendly/frontend-nanodegree-arcade-game.git"
+  },
+  "author": "Veniamin Tsigourof",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Userrrfriendly/frontend-nanodegree-arcade-game/issues"
+  },
+  "homepage": "https://github.com/Userrrfriendly/frontend-nanodegree-arcade-game#readme"
+}
